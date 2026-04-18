@@ -11,13 +11,18 @@ from fastapi.responses import RedirectResponse
 import os
 from pathlib import Path
 
-app = FastAPI(title="Mergington High School API",
-              description="API for viewing and signing up for extracurricular activities")
+app = FastAPI(
+    title="Mergington High School API",
+    description="API for viewing and signing up for extracurricular activities"
+)
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
-app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
-          "static")), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(current_dir, "static")),
+    name="static"
+)
 
 # In-memory activity database
 activities = {
@@ -41,52 +46,45 @@ activities = {
     }
 }
 
-
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
-
 
 @app.get("/activities")
 def get_activities():
     return activities
 
-
 @app.post("/activities/{activity_name}/signup")
 def signup_for_activity(activity_name: str, email: str):
     """Sign up a student for an activity"""
-    # Validate activity exists
+
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    # Get the specific activity
     activity = activities[activity_name]
-
-    # Add student
     activity["participants"].append(email)
+
     return {"message": f"Signed up {email} for {activity_name}"}
-#Create a new endpoint to register student for an activity 
+
+
+# New endpoint: Register student with validation
 @app.post("/activities/{activity_name}/register")
-def register_for_activity(activity_name: str, email: str):  
-    """Register a student for an activity"""
-    # Validate activity exists
+def register_for_activity(activity_name: str, email: str):
+    """Register a student for an activity with validation"""
+
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    # Get the specific activity
     activity = activities[activity_name]
 
-    # Check if the student is already registered
-    if email in activity["participants"]:
-        raise HTTPException(status_code=400, detail="Student already registered for this activity")
-
-    # Check if the activity has reached maximum participants
+    # Check if activity is full
     if len(activity["participants"]) >= activity["max_participants"]:
         raise HTTPException(status_code=400, detail="Activity is full")
 
-    # Register student
+    # Check if already registered
+    if email in activity["participants"]:
+        raise HTTPException(status_code=400, detail="Already registered")
+
     activity["participants"].append(email)
+
     return {"message": f"Registered {email} for {activity_name}"}
-# minor update for pull request
-
-
