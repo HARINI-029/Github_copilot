@@ -89,3 +89,4 @@ def register_for_activity(activity_name: str, email: str):
     return {"message": f"Registered {email} for {activity_name}"}
 # minor update for pull request
 
+
