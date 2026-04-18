@@ -65,3 +65,25 @@ def signup_for_activity(activity_name: str, email: str):
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+#Create a new endpoint to register student for an activity 
+@app.post("/activities/{activity_name}/register")
+def register_for_activity(activity_name: str, email: str):  
+    """Register a student for an activity"""
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    # Get the specific activity
+    activity = activities[activity_name]
+
+    # Check if the student is already registered
+    if email in activity["participants"]:
+        raise HTTPException(status_code=400, detail="Student already registered for this activity")
+
+    # Check if the activity has reached maximum participants
+    if len(activity["participants"]) >= activity["max_participants"]:
+        raise HTTPException(status_code=400, detail="Activity is full")
+
+    # Register student
+    activity["participants"].append(email)
+    return {"message": f"Registered {email} for {activity_name}"}
